@@ -3,24 +3,23 @@ from jinja2 import Template
 
 def t2():
     m = mysql.Mysql("localhost", "root", "root")
-    cols = m.get_col_info_in_dict("collection")
-    # for i in cols:
-    #     print(i)
-    # cols = m.get_col_info("tag")
-    # for i in cols:
-    #     print(i)
-    return cols
+    cols = m.formatA("collection")
+    # m.get_col_info_in_dict("collection")
 
-def t3(cols):
-    tmpl = """{#- note:for trim space only -#}
-{% for col in cols -%}
-    {{ col.name }} {{col.type}} `gorm:"column:{{col.name}};default:{{col.default}}" json:"{{col.name}}"` // {{col.comment}}
-{% endfor -%}
-"""
-    template = Template(tmpl)
-    final = template.render(array=('John dan','Vano'), cols=cols)
+    return cols,m.get_table_info()
+
+def t3(cols,talbeInfo,filename):
+    tpl = ""
+    with open("template/"+filename) as f:
+        tpl = f.read()
+    template = Template(tpl)
+    final = template.render(array=('John dan','Vano'), cols=cols,table=talbeInfo)
     print(final)
 
 if __name__ == "__main__":
     print("start")
-    t3(t2())
+    # t2()
+    cols, table = t2()
+    t3(cols,table,"go-gorm.jinja2")
+    # m = mysql.Mysql("localhost", "root", "root")
+    # m.formatA("collection")

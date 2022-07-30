@@ -1,0 +1,5 @@
+type {{table.name}} struct { 
+{%- for col in cols %}
+    {{ col.name }} {{col.type}} `gorm:"column:{{col.name}};default:{{col.default}}" json:"{{col.name}}"` // {{col.comment}}
+{%- endfor %}
+}

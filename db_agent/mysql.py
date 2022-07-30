@@ -1,13 +1,15 @@
 import pymysql
 
-class Mysql:
+from db_agent.abs_col import *
 
+class Mysql(ColFormatA):
+    # raw_cols_name 与 hum_cols_name 一一对应
     raw_cols_name = (
         "ORDINAL_POSITION",
         "COLUMN_NAME",
         "DATA_TYPE",
-        "COLUMN_DEFAULT",
         "COLUMN_COMMENT",
+        "COLUMN_DEFAULT",
         "IS_NULLABLE",
         "COLUMN_TYPE",
     )
@@ -15,9 +17,9 @@ class Mysql:
     hum_cols_name = (
         "pos",
         "name",
-        "type",
-        "default",
+        "typePureRaw",
         "comment",
+        "default",
         "isNullable",
         "typeRaw",
     )
@@ -36,22 +38,38 @@ class Mysql:
         self.sqlText = self.sqlText.replace("{{columns}}", cols)
         print(self.sqlText)
 
-    def get_col_info(self, table_name):
-        self.cur.execute(self.sqlText.format(table_name= table_name))
+    def get_col_info_raw(self, table_name):
+        self.tableInfo = {}
+        self.tableInfo["name"] = table_name
+        sql = self.sqlText.format(table_name=table_name)
+        self.cur.execute(sql)
         records = self.cur.fetchall()
         return records
 
-    def get_col_info_raw(self, table_name):
-        self.cur.execute(self.sqlText.format(table_name= table_name))
-        records = self.cur.fetchall()
-        return records
+    def get_table_info(self):
+        return self.tableInfo
+
+    def formatA(self,table_name):
+        mapTRawToHum = {
+            "varchar":"string",
+            "text":"string",
+            "varchar":"string",
+            "int":"int",
+            "datetime":"string",
+        }
+        mcols = self.get_col_info_in_dict(table_name)
+        for col in mcols:
+            rawType = col.get('typePureRaw')
+            if mapTRawToHum.get(rawType) is None:
+                raise Exception('undefined type ref', rawType)
+            col["type"] = mapTRawToHum.get(rawType)
+        return mcols
 
     def get_col_info_in_dict(self, table_name):
         cols = self.get_col_info_raw(table_name)
-        ret = [{}]
+        ret = []
         for col in cols:
             newElem = {}
-            print(col)
             for i,v in enumerate(col):
                 key = self.hum_cols_name[i]
                 newElem[key] = v

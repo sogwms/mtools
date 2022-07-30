@@ -1,0 +1,3 @@
+# Brief to mechanism
+
+input (database,table), (template) -> param parser -> get template & db-agent -> fetch column info by db-agent and then convert to general format -> render -> done
